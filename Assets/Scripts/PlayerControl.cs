@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
@@ -9,16 +8,18 @@ public class PlayerControl : MonoBehaviour
     float movX, movY;
     Rigidbody2D rb;
     PhotonView view;
-    Transform playerTransform;
-    public Animator animator;
-    private Collider col;
+    private Animator animator;
+    public Transform attackPoint;
+    public float attackRange = 2f;
+    public LayerMask enemyLayers;
+    private TimeoutManager timeoutManager;
+    private int health = 100;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         view = GetComponent<PhotonView>();
-        playerTransform = GetComponent<Transform>();
         animator = GetComponent<Animator>();
-        col = GetComponent<Collider>();
+        timeoutManager = gameObject.AddComponent<TimeoutManager>();
     }
 
     void Update()
@@ -38,13 +39,79 @@ public class PlayerControl : MonoBehaviour
             transform.localScale = theScale;
             if (Input.GetKeyDown(KeyCode.F))
             {
-                animator.SetBool("IsAttacking", true);
-            }
-            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-            if (stateInfo.IsName("playerAttackSword"))
-            {
-                animator.SetBool("IsAttacking", false);
+                Attack();
             }
         }
+    }
+
+    void Attack()
+    {
+        if (view.IsMine)
+        {
+
+            animator.SetTrigger("Attack");
+            Collider2D[] enemiesHit = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+            foreach (Collider2D enemy in enemiesHit)
+            {
+                timeoutManager.SetTimeout(() => enemy.GetComponent<EnemyController>().TakeDamage(), 0.226f);
+            }
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (attackPoint == null)
+            return;
+        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (!view.IsMine)
+        {
+            rb.velocity = Vector2.zero;
+        }
+        if (other.gameObject.tag == "Player")
+        {
+            Physics2D.IgnoreCollision(other.collider, GetComponent<Collider2D>());
+        }
+        if (other.gameObject.layer == 23)
+        {
+            TakeDamage();
+        }
+
+    }
+
+    private void TakeDamage()
+    {
+        health -= 10;
+        if (health <= 0)
+        {
+            GameObject Health = GameObject.Find("HealthValue");
+            Health.GetComponent<Health>().SetHealth(0);
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        if (view.IsMine)
+        {
+            PhotonNetwork.Destroy(gameObject);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (view.IsMine)
+        {
+            GameObject SpawnPlayers = GameObject.Find("SpawnPlayers");
+            SpawnPlayers.GetComponent<SpawnPlayers>().SpawnPlayerAfterDeath();
+        }
+    }
+
+    public int GetHealth()
+    {
+        return health;
     }
 }
