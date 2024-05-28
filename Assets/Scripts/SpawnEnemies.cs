@@ -18,6 +18,7 @@ public class SpawnEnemies : MonoBehaviour
     void Start()
     {
         timeoutManager = gameObject.AddComponent<TimeoutManager>();
+        timeoutManager.SetTimeout(increaseDifficulty, 10f);
     }
 
 
@@ -39,5 +40,12 @@ public class SpawnEnemies : MonoBehaviour
     {
         Vector2 randomPosition = new Vector2(Random.Range(minX, maxX), Random.Range(minY, maxY));
         PhotonNetwork.Instantiate(enemyPrefab.name, randomPosition, Quaternion.identity);
+    }
+
+    void increaseDifficulty()
+    {
+        if (spawnEnemyInterval > 1f)
+            spawnEnemyInterval -= 0.1f;
+        timeoutManager.SetTimeout(increaseDifficulty, 10f);
     }
 }

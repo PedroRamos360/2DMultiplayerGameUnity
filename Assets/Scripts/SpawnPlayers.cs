@@ -2,7 +2,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.UI;
 public class SpawnPlayers : MonoBehaviour
 {
     public GameObject playerPrefab;
@@ -19,6 +19,17 @@ public class SpawnPlayers : MonoBehaviour
         timeoutManager = gameObject.AddComponent<TimeoutManager>();
     }
 
+    private void Update()
+    {
+        GameObject playersStillAlive = GameObject.FindWithTag("Player");
+        if (playersStillAlive == null)
+        {
+            PhotonNetwork.LeaveRoom();
+            SceneManager.LoadScene("GameOver");
+            return;
+        }
+    }
+
     private void SpawnPlayer(bool updateHealthText = false)
     {
         Vector2 randomPosition = new Vector2(Random.Range(minX, maxX), Random.Range(minY, maxY));
@@ -33,16 +44,6 @@ public class SpawnPlayers : MonoBehaviour
 
     public void SpawnPlayerAfterDeath()
     {
-        GameObject playersStillAlive = GameObject.FindWithTag("Player");
-        if (playersStillAlive == null)
-        {
-            SceneManager.LoadScene("GameOver");
-            foreach (Player player in PhotonNetwork.CurrentRoom.Players.Values)
-            {
-                PhotonNetwork.CloseConnection(player);
-            }
-            return;
-        }
         timeoutManager.SetTimeout(() => SpawnPlayer(true), 10f);
     }
 }

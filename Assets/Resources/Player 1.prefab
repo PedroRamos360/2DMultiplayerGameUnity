@@ -364,7 +364,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   attackPoint: {fileID: 3430400340238647475}
-  attackRange: 0.8
+  attackRange: 0.7
   enemyLayers:
     serializedVersion: 2
     m_Bits: 8388608
@@ -415,7 +415,7 @@ MonoBehaviour:
     ExtrapolateIncludingRoundTripTime: 1
     ExtrapolateNumberOfStoredPositions: 1
   m_RotationModel:
-    SynchronizeEnabled: 1
+    SynchronizeEnabled: 0
     InterpolateOption: 1
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5

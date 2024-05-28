@@ -52,6 +52,8 @@ public class EnemyController : MonoBehaviour
     public void TakeDamage()
     {
         RequestDestroyEnemy(photonView);
+        GameObject scoreValue = GameObject.Find("ScoreValue");
+        scoreValue.GetComponent<Score>().IncreaseScore();
     }
 
     private void OnCollisionEnter2D(Collision2D other)

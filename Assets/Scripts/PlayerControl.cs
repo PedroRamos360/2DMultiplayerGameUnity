@@ -14,6 +14,8 @@ public class PlayerControl : MonoBehaviour
     public LayerMask enemyLayers;
     private TimeoutManager timeoutManager;
     private int health = 100;
+    float lastAttackTime;
+    AnimatorStateInfo stateInfo;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -41,6 +43,7 @@ public class PlayerControl : MonoBehaviour
             {
                 Attack();
             }
+            HandleAttackCollision();
         }
     }
 
@@ -48,15 +51,29 @@ public class PlayerControl : MonoBehaviour
     {
         if (view.IsMine)
         {
-
+            if (Time.time - lastAttackTime < 0.5f)
+            {
+                return;
+            }
+            lastAttackTime = Time.time;
             animator.SetTrigger("Attack");
+        }
+    }
+
+    void HandleAttackCollision()
+    {
+        stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        if (stateInfo.IsName("playerAttackSword") && stateInfo.normalizedTime > 0.5f && view.IsMine)
+        {
+            Debug.Log("Testing Collision...");
             Collider2D[] enemiesHit = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
             foreach (Collider2D enemy in enemiesHit)
             {
-                timeoutManager.SetTimeout(() => enemy.GetComponent<EnemyController>().TakeDamage(), 0.226f);
+                enemy.GetComponent<EnemyController>().TakeDamage();
             }
         }
     }
+
 
     private void OnDrawGizmosSelected()
     {
